@@ -184,3 +184,14 @@ body {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: oklch(1 0 0 / 25%);
 }
+
+/* Focus Mode — dims sidebar when timer is actively running */
+[data-focus-mode="true"] [data-slot="friends-sidebar"] {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+[data-slot="friends-sidebar"] {
+  transition: opacity 0.4s ease;
+}
