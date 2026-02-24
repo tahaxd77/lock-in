@@ -3,12 +3,15 @@
 import React, { useEffect } from 'react';
 import { FocusTimer } from '@/components/timer/FocusTimer';
 import { FriendsList } from '@/components/presence/FriendsList';
+import { NudgeToast } from '@/components/social/NudgeToast';
+import { ActivityFeed } from '@/components/social/ActivityFeed';
+import { Leaderboard } from '@/components/social/Leaderboard';
 import { useTimerStore } from '@/store/timerStore';
 import { usePresence } from '@/hooks/usePresence';
+import { useNudgeListener } from '@/hooks/useNudgeListener';
+import { usePresenceStore } from '@/store/presenceStore';
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
 } from '@/components/ui/Card';
 
@@ -27,6 +30,10 @@ export function DashboardClient({ profile }: DashboardClientProps) {
   const timerStatus = useTimerStore((s) => s.status);
   const timerSubject = useTimerStore((s) => s.subject);
   const { broadcastStatus } = usePresence(profile.id);
+  const onlineCount = usePresenceStore((s) => s.onlineCount);
+
+  // Subscribe to incoming nudges
+  useNudgeListener(profile.id);
 
   // Broadcast status changes to the presence channel
   useEffect(() => {
@@ -64,7 +71,11 @@ export function DashboardClient({ profile }: DashboardClientProps) {
             isText: true,
           },
           { label: 'Current Streak', value: '0', icon: '🔥' },
-          { label: 'Friends Active', value: '—', icon: '👥' },
+          {
+            label: 'Friends Active',
+            value: onlineCount > 0 ? String(onlineCount) : '0',
+            icon: '👥',
+          },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="flex items-center justify-between pt-6">
@@ -96,20 +107,13 @@ export function DashboardClient({ profile }: DashboardClientProps) {
         {/* Right Sidebar */}
         <div className="space-y-6" data-slot="friends-sidebar">
           <FriendsList currentUserId={profile.id} />
-
-          {/* Recent Activity placeholder */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="py-2 text-center text-sm text-muted-foreground">
-                Start your first session to see activity here! 📊
-              </p>
-            </CardContent>
-          </Card>
+          <ActivityFeed currentUserId={profile.id} />
+          <Leaderboard />
         </div>
       </div>
+
+      {/* Nudge Toast — floating, bottom-right */}
+      <NudgeToast />
     </>
   );
 }
